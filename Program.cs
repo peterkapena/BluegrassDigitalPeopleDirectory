@@ -1,9 +1,10 @@
+using BluegrassDigitalPeopleDirectory.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<BluegrassDigitalPeopleDirectory.Models.DbContext>(options =>
+builder.Services.AddDbContext<DBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("BluegrassDigitalPeopleDirectory"));
 });

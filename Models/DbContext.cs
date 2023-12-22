@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BluegrassDigitalPeopleDirectory.Models
 {
-    public class DbContext(DbContextOptions<DbContext> options) : IdentityDbContext<AppUser>(options)
+    public class DBContext(DbContextOptions<DBContext> options) : IdentityDbContext<AppUser>(options)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
