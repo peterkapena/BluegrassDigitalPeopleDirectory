@@ -9,9 +9,11 @@ using BluegrassDigitalPeopleDirectory.Services.Bug;
 using static BluegrassDigitalPeopleDirectory.Models.DBContext;
 using BluegrassDigitalPeopleDirectory.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using BluegrassDigitalPeopleDirectory.Services.TempProc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -59,6 +61,8 @@ void AddServices()
         options.AddPolicy(name: MyAllowAllHeadersPolicy,
                           policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
     });
+
+    builder.Services.AddTransient<ITmpProcService, TmpProc>();
 }
 
 void AddAuthentication()
@@ -123,6 +127,14 @@ void ConfigureApp()
 
     app.MapControllers();
     app.UseCors("MyAllowAllHeadersPolicy");
+    
+    Initialise(app);
 
     app.Run();
+}
+
+static void Initialise(IApplicationBuilder app)
+{
+    var tmpProcService = app.ApplicationServices.CreateScope().ServiceProvider.GetService<ITmpProcService>();
+    tmpProcService.Run();
 }

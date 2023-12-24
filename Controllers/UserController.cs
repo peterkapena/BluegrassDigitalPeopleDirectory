@@ -8,64 +8,44 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Identity
 {
     [Route("[controller]")]
     [ApiController]
-    public class UserController : BaseAPI
+    public class UserController(UserManager<User> userMgr,
+                          DBContext context,
+                          Services.Setting.Setting setting,
+                           IUserService userService,
+                          IErrorLogService errorLogService) : BaseAPI(userMgr: userMgr,
+            context: context,
+            setting: setting,
+             errorLogService: errorLogService)
     {
-        #region 'Construcors'
-        public UserController(UserManager<User> userMgr,
-                              DBContext context,
-                              Services.Setting.Setting setting,
-                              RoleManager<IdentityRole> roleManager,
-                              IUserService userService,
-                              IErrorLogService errorLogService)
-         : base(userMgr: userMgr,
-                context: context,
-                setting: setting,
-                roleManager: roleManager,
-                errorLogService: errorLogService)
-        {
-            UserService = userService;
-        }
 
-        public IUserService UserService { get; }
 
-        #endregion.
-        [HttpPost]
-        public async Task<ActionResult> Post([FromBody] XUser xUser)
+        public IUserService UserService { get; } = userService;
+
+        [HttpPost(Name = "login")]
+        public async Task<ActionResult> Login([FromBody] XUser xUser)
         {
             var user = await UserManager.FindByEmailAsync(xUser.Email);
 
-            if (user is null)
+            if (user is null && !(await UserManager.CheckPasswordAsync(user, xUser.Password)))
             {
-                var result = await UserService.CreateAsync(xUser);
-                if (result.Succeeded)
-                {
-                    user = await UserManager.FindByEmailAsync(xUser.Email);
-                    //string token = await UserService.GetAuthToken(user);
-                    ReturnValue = GetReturnForLogin(user);
-                }
-                else SetReturnValue("error", result.Errors.ToList());
+                SetReturnValue("error", "Login failed.");
+                return Unauthorized(ReturnValue);
             }
             else
             {
-                if (await UserManager.CheckPasswordAsync(user, xUser.Password))
-                {
-                    //string token = await UserService.GetAuthToken(user);
-                    ReturnValue = GetReturnForLogin(user);
-                }
-                else
-                {
-                    SetReturnValue("error", "Login failed");
-                    return Unauthorized(ReturnValue);
-                }
+                string token = await UserService.GetAuthToken(user);
+                ReturnValue = GetReturnForLogin(user, token);
+                return Ok(ReturnValue);
             }
-            return Ok(ReturnValue);
         }
-        private static Dictionary<string, object> GetReturnForLogin(User u)
+
+        private static Dictionary<string, object> GetReturnForLogin(User u, string token)
         {
             return new Dictionary<string, object>
             {
                 { "id", u.Id },
                 { "email", u.Email },
+                { "token", token },
              };
         }
     }

@@ -10,7 +10,6 @@ namespace BluegrassDigitalPeopleDirectory.Controllers
     public abstract class BaseAPI : ControllerBase
     {
         public UserManager<User> UserManager { get; set; }
-        public RoleManager<IdentityRole> RoleManager { get; set; }
         public IErrorLogService ErrorLogService { get; }
         public SignInManager<User> SignInManager { get; set; }
         public DBContext Context { get; set; }
@@ -43,8 +42,7 @@ namespace BluegrassDigitalPeopleDirectory.Controllers
                        SignInManager<User> signinMgr = null,
                        DBContext context = null,
                        IConfiguration configuration = null,
-                       Services.Setting.Setting setting = null,
-                       RoleManager<IdentityRole> roleManager = null)
+                       Services.Setting.Setting setting = null)
         {
             UserManager = userMgr;
             SignInManager = signinMgr;
@@ -52,7 +50,6 @@ namespace BluegrassDigitalPeopleDirectory.Controllers
             ReturnValue = new Dictionary<string, object>();
             Configuration = configuration;
             Setting = setting;
-            RoleManager = roleManager;
             ErrorLogService = errorLogService;
         }
 
