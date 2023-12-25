@@ -1,4 +1,5 @@
-﻿using BluegrassDigitalPeopleDirectory.Models;
+﻿using BluegrassDigitalPeopleDirectory.Controllers.Auth;
+using BluegrassDigitalPeopleDirectory.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,15 +11,16 @@ namespace BluegrassDigitalPeopleDirectory.Services
 {
     public interface IUserService
     {
-        public Task<IdentityResult> CreateAsync(XUser xUser);
+        public Task<IdentityResult> CreateAsync(RegisterModelIn xUser);
         public Task<string> GetAuthToken(User xUser);
+        public void SeedRoles();
     }
 
     public class UserService : IUserService
     {
         public UserManager<User> UserManager { get; set; }
-        public RoleManager<IdentityRole> RoleManager { get; set; }
         public Setting.Setting Setting { get; set; }
+        public RoleManager<IdentityRole> RoleManager { get; }
         public DBContext Context { get; set; }
 
         public enum UserRoles
@@ -28,22 +30,49 @@ namespace BluegrassDigitalPeopleDirectory.Services
 
         public UserService(UserManager<User> userMgr,
                            DBContext context,
-                           Setting.Setting setting)
+                           Setting.Setting setting, RoleManager<IdentityRole> roleManager)
         {
             UserManager = userMgr;
             Context = context;
             Setting = setting;
+            RoleManager = roleManager;
         }
-
-        public async Task<IdentityResult> CreateAsync(XUser xUser)
+        public void SeedRoles()
         {
+            const string Admin = "Admin";
+            if (!RoleManager.RoleExistsAsync(Admin).Result)
+            {
+                IdentityRole role = new()
+                {
+                    Name = Admin
+                };
+                _ = RoleManager.CreateAsync(role).Result;
+            }
 
+            const string User = "Client";
+            if (!RoleManager.RoleExistsAsync(User).Result)
+            {
+                IdentityRole role = new()
+                {
+                    Name = User
+                };
+                _ = RoleManager.CreateAsync(role).Result;
+            }
+        }
+        public async Task<IdentityResult> CreateAsync(RegisterModelIn registerModelIn)
+        {
             var user = new User
             {
-                Email = xUser.Email,
+                Email = registerModelIn.Email,
                 UserName = $"{UserManager.Users.ToListAsync().Result.Count + 1}"
             };
-            IdentityResult result = await UserManager.CreateAsync(user, xUser.Password);
+            IdentityResult result = await UserManager.CreateAsync(user, registerModelIn.Password);
+            UserManager.AddToRoleAsync(user, registerModelIn.Role).Wait();
+
+            if (registerModelIn.Role != null)
+            {
+                await UserManager.AddToRoleAsync(user, registerModelIn.Role);
+            }
 
             return result;
         }
@@ -72,13 +101,5 @@ namespace BluegrassDigitalPeopleDirectory.Services
 
             return new JwtSecurityTokenHandler().WriteToken(securityToken);
         }
-    }
-
-    public class XUser
-    {
-        public string Id { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        //public string TokenForAnonymous { get; set; }
     }
 }
