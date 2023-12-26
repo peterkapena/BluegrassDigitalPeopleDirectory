@@ -1,1 +1,2 @@
 Load sample people data by writing the people service
+the client integration
