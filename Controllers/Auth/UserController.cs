@@ -1,12 +1,13 @@
 ﻿using BluegrassDigitalPeopleDirectory.Models;
 using BluegrassDigitalPeopleDirectory.Services;
 using BluegrassDigitalPeopleDirectory.Services.Bug;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UserController(UserManager<User> userMgr,
                           DBContext context,
@@ -22,20 +23,28 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModelIn loginModelIn)
         {
-            var user = await UserManager.FindByEmailAsync(loginModelIn.Email);
-            LoginModelOut loginModelOut = new();
+            try
+            {
+                var user = await UserManager.FindByEmailAsync(loginModelIn.Email);
+                LoginModelOut loginModelOut = new();
 
-            if (user is null && !await UserManager.CheckPasswordAsync(user, loginModelIn.Password))
-            {
-                loginModelOut.AddError("login", "login failed");
-                return Unauthorized(loginModelOut);
+                if (user is null && !await UserManager.CheckPasswordAsync(user, loginModelIn.Password))
+                {
+                    loginModelOut.AddError("login", "login failed");
+                    return Unauthorized(loginModelOut);
+                }
+                else
+                {
+                    string token = await UserService.GetAuthToken(user);
+                    loginModelOut.Token = token;
+                    loginModelOut.Email = user.Email;
+                    return Ok(loginModelOut);
+                }
             }
-            else
+            catch (Exception)
             {
-                string token = await UserService.GetAuthToken(user);
-                loginModelOut.Token = token;
-                loginModelOut.Email = user.Email;
-                return Ok(loginModelOut);
+
+                throw;
             }
         }
         [HttpPost("register")]

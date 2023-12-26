@@ -62,6 +62,7 @@ void AddServices()
                           policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
     });
 
+    builder.Services.AddTransient<IPeopleService, PeopleService>();
     builder.Services.AddTransient<ITmpProcService, TmpProc>();
 }
 

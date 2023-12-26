@@ -9,6 +9,7 @@ namespace BluegrassDigitalPeopleDirectory.Models
     {
         public DbSet<ErrorLog> Errors { get; set; }
         public DbSet<TmpTask> TmpTasks { get; set; }
+        public DbSet<Person> People { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

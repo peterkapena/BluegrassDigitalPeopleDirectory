@@ -11,11 +11,11 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
     {
         public Task<bool> HasAlreadyRun(MethodInfo method);
         public Task SaveTmpTask(MethodInfo method);
-        public ITmpProcService Run();
+        public Task<ITmpProcService> Run();
 
     }
 
-    public partial class TmpProc(DBContext context, IErrorLogService errorLogService, IUserService userService) : ITmpProcService
+    public partial class TmpProc(DBContext context, IErrorLogService errorLogService, IUserService userService, IPeopleService personService) : ITmpProcService
     {
 
         #region "constructor and properties"
@@ -23,24 +23,25 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
         public DBContext Context { get; } = context;
         public IErrorLogService ErrorLogService { get; } = errorLogService;
         public IUserService UserService { get; } = userService;
+        public IPeopleService PersonService { get; } = personService;
         #endregion
 
-        public ITmpProcService Run()
+        public async Task<ITmpProcService> Run()
         {
             foreach (var method in GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                if (method.GetCustomAttributes(typeof(TmpProcAtt), false).Length > 0 && !HasAlreadyRun(method).Result)
+                if (method.GetCustomAttributes(typeof(TmpProcAtt), false).Length > 0 && !(await HasAlreadyRun(method)))
                 {
-                    Action RunStep = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+                    Func<Task> runStep = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), this, method);
                     try
                     {
-                        RunStep();
+                        await runStep(); // Awaiting the asynchronous operation
+                        await SaveTmpTask(method); // Assuming SaveTmpTask is an async method
                     }
                     catch (Exception ex)
                     {
-                        ErrorLogService.RegisterError(new Exception($"{method.Name} Failed to run", ex));
+                        await ErrorLogService.RegisterError(new Exception($"{method.Name} Failed to run", ex));
                     }
-                    _ = SaveTmpTask(method);
                 }
             }
             return this;

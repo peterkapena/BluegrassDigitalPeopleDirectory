@@ -7,19 +7,25 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
         const string ClassName = "Tmp2312";
 
         [TmpProcAtt(className: ClassName)]
-        private void AddDefaultAdminUser()
+        private async Task AddDefaultAdminUser()
         {
-            UserService.CreateAsync(new Controllers.Auth.RegisterModelIn
+            await UserService.CreateAsync(new Controllers.Auth.RegisterModelIn
             {
                 Email = "peterkapenapeter@gmail.com",
-                Password = "PPPPPPP@PPPPP"
+                Password = "PPPPPPP@PPPPP",
+                Role = "Admin"
             });
         }
 
         [TmpProcAtt(className: ClassName)]
-        private void SeedRoles()
+        private async Task SeedRoles()
         {
-            UserService.SeedRoles();
+            await UserService.SeedRoles();
+        }
+        [TmpProcAtt(className: ClassName)]
+        private async Task GenerateAndSavePersonsAsync()
+        {
+            await PersonService.GenerateAndSavePersonsAsync();
         }
     }
 }
