@@ -82,7 +82,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
             var authClaims = new List<Claim>
                     {
                         new(JwtRegisteredClaimNames.Jti, user.Id),
-                        new(ClaimTypes.Name, user.Email)
+                        new(ClaimTypes.Email, user.Email)
                     };
 
             //Add the user roles in the claim so that the the role will be used for authorisation

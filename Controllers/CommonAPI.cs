@@ -35,6 +35,12 @@ namespace BluegrassDigitalPeopleDirectory.Controllers
                         var claimsIdentity = User.Identity as ClaimsIdentity;
                         var userId = claimsIdentity.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
                         user = await UserManager.FindByIdAsync(userId);
+                     
+                        if (user == null)
+                        {
+                            var email = claimsIdentity.FindFirst(ClaimTypes.Email)?.Value;
+                            user = await UserManager.FindByEmailAsync(email);
+                        }
                     }
                     catch { }
 

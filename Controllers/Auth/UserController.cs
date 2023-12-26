@@ -73,5 +73,27 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
                 return StatusCode(500, registerModelOut);
             }
         }
+
+        [HttpPost("verify_tkn")]
+        public async Task<IActionResult> VerifyToken()
+        {
+
+            var user = await AuthenticatedUser;
+            if (user is null)
+            {
+                var rtn = new LoginModelOut();
+                rtn.AddError("Token", "Invalid token");
+                return StatusCode(500, rtn);
+            }
+            else
+            {
+                string token = await UserService.GetAuthToken(user);
+                return Ok(new LoginModelOut
+                {
+                    Email = user.Email,
+                    Token = token
+                });
+            }
+        }
     }
 }
