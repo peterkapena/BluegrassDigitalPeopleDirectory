@@ -13,17 +13,11 @@ namespace BluegrassDigitalPeopleDirectory.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            //Identity Customizd entities
-            //modelBuilder.Entity<User>(entity =>
-            //{
-            //    entity.ToTable(name: "User");
-            //});
-        }
-        public struct ConnectionString
-        {
-            public string Dev { get; set; }
-            public string Test { get; set; }
-            public string Prod { get; set; }
+
+            // Configuring the unique index
+            modelBuilder.Entity<TmpTask>()
+                .HasIndex(u => u.WhenRun)
+                .IsUnique();
         }
     }
 }

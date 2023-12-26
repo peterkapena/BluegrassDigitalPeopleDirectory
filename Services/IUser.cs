@@ -13,7 +13,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
     {
         public Task<IdentityResult> CreateAsync(RegisterModelIn xUser);
         public Task<string> GetAuthToken(User xUser);
-        public void SeedRoles();
+        public Task SeedRoles();
     }
 
     public class UserService : IUserService
@@ -37,7 +37,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
             Setting = setting;
             RoleManager = roleManager;
         }
-        public void SeedRoles()
+        public async Task SeedRoles()
         {
             const string Admin = "Admin";
             if (!RoleManager.RoleExistsAsync(Admin).Result)
@@ -46,7 +46,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
                 {
                     Name = Admin
                 };
-                _ = RoleManager.CreateAsync(role).Result;
+                await RoleManager.CreateAsync(role);
             }
 
             const string User = "Client";
@@ -56,7 +56,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
                 {
                     Name = User
                 };
-                _ = RoleManager.CreateAsync(role).Result;
+                await RoleManager.CreateAsync(role);
             }
         }
         public async Task<IdentityResult> CreateAsync(RegisterModelIn registerModelIn)
@@ -64,10 +64,9 @@ namespace BluegrassDigitalPeopleDirectory.Services
             var user = new User
             {
                 Email = registerModelIn.Email,
-                UserName = $"{UserManager.Users.ToListAsync().Result.Count + 1}"
+                UserName = $"{UserManager.Users.ToListAsync().Result.Count + 1}",
             };
             IdentityResult result = await UserManager.CreateAsync(user, registerModelIn.Password);
-            UserManager.AddToRoleAsync(user, registerModelIn.Role).Wait();
 
             if (registerModelIn.Role != null)
             {

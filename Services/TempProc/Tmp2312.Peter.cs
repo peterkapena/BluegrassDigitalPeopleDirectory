@@ -5,10 +5,10 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
     public partial class TmpProc
     {
         const string ClassName = "Tmp2312";
-
-        [TmpProcAtt(className: ClassName)]
+         [TmpProcAtt(className: ClassName)]
         private async Task AddDefaultAdminUser()
         {
+            await UserService.SeedRoles();
             await UserService.CreateAsync(new Controllers.Auth.RegisterModelIn
             {
                 Email = "peterkapenapeter@gmail.com",
@@ -17,11 +17,7 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
             });
         }
 
-        [TmpProcAtt(className: ClassName)]
-        private async Task SeedRoles()
-        {
-            await UserService.SeedRoles();
-        }
+
         [TmpProcAtt(className: ClassName)]
         private async Task GenerateAndSavePersonsAsync()
         {

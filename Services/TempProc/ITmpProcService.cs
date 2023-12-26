@@ -1,8 +1,9 @@
 ﻿using BluegrassDigitalPeopleDirectory.Models;
 using BluegrassDigitalPeopleDirectory.Models.TmpProc;
 using BluegrassDigitalPeopleDirectory.Services.Bug;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace BluegrassDigitalPeopleDirectory.Services.TempProc
@@ -51,38 +52,17 @@ namespace BluegrassDigitalPeopleDirectory.Services.TempProc
         {
             try
             {
-                CreateTmpTaskTable();
                 return await Context.TmpTasks
                     .Where(t => t.MethodName == method.Name && t.ClassName == method.GetCustomAttribute<TmpProcAtt>().ClassName)
                     .AnyAsync();
             }
             catch (Exception ex)
             {
-                _ = ErrorLogService.RegisterError(new Exception("Temp proc - HasAlreadyRun", ex));
+                await ErrorLogService.RegisterError(new Exception("Temp proc - HasAlreadyRun", ex));
                 return false;
             }
         }
 
-        public void CreateTmpTaskTable()
-        {
-            try
-            {
-                var SQL = @$"
-                        CREATE TABLE IF NOT EXISTS ""TmpTask"" (
-                        ""TmpTaskId"" INTEGER NOT NULL CONSTRAINT ""PK_TmpTask"" PRIMARY KEY AUTOINCREMENT,
-                        ""MethodName"" TEXT NULL,
-                        ""ClassName"" TEXT NULL,
-                        ""WhenRun"" TEXT NOT NULL
-                        );
-                        CREATE UNIQUE INDEX IF NOT EXISTS ""IX_TmpTask_WhenRun"" ON ""TmpTask"" (""WhenRun"");";
-
-                Context.Database.ExecuteSqlRaw(SQL);
-            }
-            catch (Exception e)
-            {
-                ErrorLogService.RegisterError(e);
-            }
-        }
         public async Task SaveTmpTask(MethodInfo method)
         {
             var tmpProcAtt = method.GetCustomAttribute<TmpProcAtt>();

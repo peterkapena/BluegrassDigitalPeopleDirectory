@@ -96,9 +96,6 @@ void AddAuthentication()
 
 void AddIdentity()
 {
-    var connectionString = new ConnectionString();
-    builder.Configuration.Bind(nameof(connectionString), connectionString);
-
     builder.Services.AddDbContext<DBContext>(options => options.UseSqlServer(setting.ConnectionString));
 
     builder.Services.AddIdentity<User, IdentityRole>(opts =>
@@ -128,7 +125,7 @@ void ConfigureApp()
 
     app.MapControllers();
     app.UseCors("MyAllowAllHeadersPolicy");
-    
+
     Initialise(app);
 
     app.Run();
