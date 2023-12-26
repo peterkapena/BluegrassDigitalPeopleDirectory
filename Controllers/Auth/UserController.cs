@@ -2,8 +2,10 @@
 using BluegrassDigitalPeopleDirectory.Services;
 using BluegrassDigitalPeopleDirectory.Services.Bug;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
 {
@@ -28,18 +30,17 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
                 var user = await UserManager.FindByEmailAsync(loginModelIn.Email);
                 LoginModelOut loginModelOut = new();
 
-                if (user is null && !await UserManager.CheckPasswordAsync(user, loginModelIn.Password))
-                {
-                    loginModelOut.AddError("login", "login failed");
-                    return Unauthorized(loginModelOut);
-                }
-                else
+                if (user is not null && await UserManager.CheckPasswordAsync(user, loginModelIn.Password))
                 {
                     string token = await UserService.GetAuthToken(user);
                     loginModelOut.Token = token;
                     loginModelOut.Email = user.Email;
-                    return Ok(loginModelOut);
                 }
+                else
+                {
+                    loginModelOut.AddError("login", "login failed");
+                }
+                return Ok(loginModelOut);
             }
             catch (Exception)
             {
@@ -57,21 +58,17 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
             {
                 var rslt = await UserService.CreateAsync(registerModelIn);
                 if (!rslt.Succeeded)
-                {
                     foreach (var error in rslt.Errors)
                     {
                         registerModelOut.AddError(error.Code, error.Description);
                     }
-                    return StatusCode(500, registerModelOut);
-                }
-                return Ok(registerModelOut);
+                Ok(registerModelOut);
             }
             else
             {
                 registerModelOut.AddError("Duplicate", "A user with this email already exists.");
-
-                return StatusCode(500, registerModelOut);
             }
+            return Ok(registerModelOut);
         }
 
         [HttpPost("verify_tkn")]
@@ -83,15 +80,17 @@ namespace BluegrassDigitalPeopleDirectory.Controllers.Auth
             {
                 var rtn = new LoginModelOut();
                 rtn.AddError("Token", "Invalid token");
-                return StatusCode(500, rtn);
+                return Ok(rtn);
             }
             else
             {
                 string token = await UserService.GetAuthToken(user);
-                return Ok(new LoginModelOut
+                var claimsIdentity = User.Identity as ClaimsIdentity;
+                return Ok(new VerifyTokenModelOut
                 {
                     Email = user.Email,
-                    Token = token
+                    Token = token,
+                    Role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value
                 });
             }
         }

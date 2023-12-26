@@ -10,4 +10,8 @@
         public string Email { get; set; }
         public string Token { get; set; }
     }
+    public class VerifyTokenModelOut : LoginModelOut
+    {
+        public string Role { get; set; }
+    }
 }

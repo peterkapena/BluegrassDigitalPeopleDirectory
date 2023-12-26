@@ -86,7 +86,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
                     };
 
             //Add the user roles in the claim so that the the role will be used for authorisation
-            foreach (var role in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, role));
+            foreach (var role in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, role.ToUpper()));
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Setting.JwtSetting.IssuerSigningKey));
 
