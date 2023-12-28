@@ -13,7 +13,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
         Task<Person> DeletePerson(long id);
         bool PersonExists(long id);
     }
-    public class PeopleService(DBContext dBContext) : IPeopleService
+    public class PeopleService(DBContext dBContext, IEmailService emailService) : IPeopleService
     {
         public DBContext DBContext { get; } = dBContext;
 
@@ -42,7 +42,11 @@ namespace BluegrassDigitalPeopleDirectory.Services
             await DBContext.People.AddRangeAsync(persons);
             await DBContext.SaveChangesAsync();
         }
-
+        private void SendEmailForEditToAdmin(long id, string action)
+        {
+            string body = $"A record with an id of {id} has been {action}.";
+            emailService.SendEmail("system.dir@dir.com", "mark@bluegrassdigital.com", "Please note from People Directory", body);
+        }
         public async Task<Person> GetPerson(long id)
         {
             var person = await DBContext.People.FindAsync(id);
@@ -60,6 +64,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
             try
             {
                 await DBContext.SaveChangesAsync();
+                SendEmailForEditToAdmin(id, "updated");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -72,7 +77,6 @@ namespace BluegrassDigitalPeopleDirectory.Services
                     throw;
                 }
             }
-
             return person;
         }
 
@@ -88,6 +92,7 @@ namespace BluegrassDigitalPeopleDirectory.Services
             var person = await DBContext.People.FindAsync(id);
             DBContext.People.Remove(person);
             await DBContext.SaveChangesAsync();
+            SendEmailForEditToAdmin(id, "deleted");
 
             return person;
         }
