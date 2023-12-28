@@ -2,3 +2,13 @@ Load sample people data by writing the people service
 the client integration
 add a user
 filter
+
+
+
+
+
+View a person page and be able to Update it
+Add delete single and bulk delete
+Add role persmissions restrictions
+City drop down and filter
+email to mark@bluegrassdigital.com when person is updated or edited or deleted

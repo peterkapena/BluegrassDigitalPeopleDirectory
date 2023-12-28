@@ -33,6 +33,8 @@ namespace BluegrassDigitalPeopleDirectory.Services
                 {
                     Name = generatedName.Split(' ')[0],
                     Surname = generatedName.Split(' ')[1],
+                    Country = i < 50 ? "Congo, Democratic Republic of the" : null,
+                    Gender = i % 2 == 0 ? "M" : "F"
                 };
                 persons.Add(person);
             }
